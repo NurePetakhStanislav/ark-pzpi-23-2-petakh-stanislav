@@ -1,62 +1,61 @@
 ﻿using CAaR.Models;
 using CAaR.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.JsonPatch;
 
-namespace CAaR.Controllers
+[Route("api/[controller]")]
+[ApiController]
+public class HelpRequestsController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class HelpRequestsController : ControllerBase
+    private readonly GenericService<HelpRequest> _service;
+    private readonly GenericService<User> _userService;
+
+    public HelpRequestsController(GenericService<HelpRequest> service, GenericService<User> userService)
     {
-        private readonly GenericService<HelpRequest> _service;
+        _service = service;
+        _userService = userService;
+    }
 
-        public HelpRequestsController(GenericService<HelpRequest> service)
-        {
-            _service = service;
-        }
+    [HttpGet]
+    public async Task<ActionResult<List<HelpRequest>>> GetAll()
+    {
+        var helpRequests = await _service.ReadAllAsync();
+        return Ok(helpRequests);
+    }
 
-        [HttpGet]
-        public async Task<ActionResult<List<HelpRequest>>> GetAll()
-        {
-            var helpRequests = await _service.ReadAllAsync();
-            return Ok(helpRequests);
-        }
+    [HttpGet("{id}")]
+    public async Task<ActionResult<HelpRequest>> Get(int id)
+    {
+        var helpRequest = await _service.ReadAsyncByID(id);
+        if (helpRequest == null)
+            return NotFound($"Даного запиту з ID {id} не існує");
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<HelpRequest>> Get(int id)
-        {
-            var helpRequest = (await _service.ReadAllAsync()).FirstOrDefault(h => h.HelpID == id);
-            if (helpRequest == null)
-                return NotFound();
-            return Ok(helpRequest);
-        }
+        return Ok(helpRequest);
+    }
 
-        [HttpPost]
-        public async Task<ActionResult> Create(HelpRequest helpRequest)
-        {
-            await _service.AddAsync(helpRequest);
-            return CreatedAtAction(nameof(Get), new { id = helpRequest.HelpID }, helpRequest);
-        }
+    [HttpPost]
+    public async Task<ActionResult> Create(HelpRequest helpRequest)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult> Update(int id, HelpRequest helpRequest)
-        {
-            if (id != helpRequest.HelpID)
-                return BadRequest();
+        var user = await _userService.ReadAsyncByID(helpRequest.UserID);
+        if (user == null)
+            return BadRequest("Даний користувач відсутній");
 
-            await _service.UpdateAsync(helpRequest);
-            return NoContent();
-        }
+        helpRequest.User = user;
+        await _service.AddAsync(helpRequest);
+        return CreatedAtAction(nameof(Get), new { id = helpRequest.HelpID }, helpRequest);
+    }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
-        {
-            var helpRequest = (await _service.ReadAllAsync()).FirstOrDefault(h => h.HelpID == id);
-            if (helpRequest == null)
-                return NotFound();
+    [HttpDelete("{id}")]
+    public async Task<ActionResult> Delete(int id)
+    {
+        var helpRequest = await _service.ReadAsyncByID(id);
+        if (helpRequest == null)
+            return NotFound();
 
-            await _service.DeleteAsync(helpRequest);
-            return NoContent();
-        }
+        await _service.DeleteAsync(helpRequest);
+        return NoContent();
     }
 }

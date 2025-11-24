@@ -25,6 +25,11 @@ namespace CAaR.Services
             return await _dbSet.ToListAsync();
         }
 
+        public async Task<T> ReadAsyncByID(int id)
+        {
+            return await _dbSet.FindAsync(id);
+        }
+
         public async Task UpdateAsync(T entity)
         {
             _dbSet.Update(entity);

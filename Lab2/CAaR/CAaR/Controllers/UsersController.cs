@@ -2,7 +2,9 @@
 using System.Text;
 using CAaR.Models;
 using CAaR.Services;
+
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.JsonPatch;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -34,19 +36,18 @@ public class UsersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<User>> Get(int id)
     {
-        var user = (await _service.ReadAllAsync()).FirstOrDefault(u => u.UserID == id);
+        var user = await _service.ReadAsyncByID(id);
         if (user == null)
-            return NotFound();
+            return NotFound($"Даного користувача з ID {id} не існує");
+
         return Ok(user);
     }
 
     [HttpPost]
     public async Task<ActionResult<User>> Create(User user)
     {
-        if (string.IsNullOrWhiteSpace(user.UserName)) return BadRequest("Ім'я має бути обов'язковим");
-        if (string.IsNullOrWhiteSpace(user.Email)) return BadRequest("Email має бути обов'язковим");
-        if (string.IsNullOrWhiteSpace(user.Role)) return BadRequest("Роль має бути обов'язковим");
-        if (string.IsNullOrWhiteSpace(user.Password)) return BadRequest("Пароль має бути обов'язковим");
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
         user.Password = HashPassword(user.Password);
         await _service.AddAsync(user);
@@ -57,20 +58,50 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<User>> Update(int id, User user)
     {
         if (id != user.UserID)
-            return BadRequest();
+            return Forbid("Заборонено змінювати ID користувача");
+
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
         await _service.UpdateAsync(user);
         return Ok(user);
     }
 
+    [HttpPatch("{id}")]
+    public async Task<ActionResult<User>> Patch(int id, [FromBody] JsonPatchDocument<User> patchDoc)
+    {
+        if (patchDoc == null)
+            return BadRequest("Патч документ не може бути порожнім.");
+
+        var existingUser = await _service.ReadAsyncByID(id);
+        if (existingUser == null)
+            return NotFound($"Користувач з ID {id} не знайдений.");
+
+        if (patchDoc.Operations.Any(op => op.path.ToLower() == "/userid"))
+            return Forbid("Змінювати UserID заборонено.");
+
+        patchDoc.ApplyTo(existingUser);
+
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        if (patchDoc.Operations.Any(op => op.path.ToLower() == "/password"))
+        {
+            existingUser.Password = HashPassword(existingUser.Password);
+        }
+
+        await _service.UpdateAsync(existingUser);
+        return Ok(existingUser);
+    }
+
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)
     {
-        var user = (await _service.ReadAllAsync()).FirstOrDefault(u => u.UserID == id);
+        var user = await _service.ReadAsyncByID(id);
         if (user == null)
-            return NotFound();
+            return NotFound("Даного користувача за ID не існує");
 
         await _service.DeleteAsync(user);
-        return Ok(new { message = $"User з UserID {id} успішно видалено" });
+        return NoContent();
     }
 }
