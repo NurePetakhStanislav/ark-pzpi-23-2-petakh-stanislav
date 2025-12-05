@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace CAaR.Models
 {
     [Table("Result")]
-    public class Result
+    public class Result : IHasUser
     {
         [Key]
         public int ResultID { get; set; }

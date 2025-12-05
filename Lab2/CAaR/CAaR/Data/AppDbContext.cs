@@ -22,32 +22,38 @@ namespace CAaR.Data
             modelBuilder.Entity<Result>()
                 .HasOne(r => r.User)
                 .WithMany()
-                .HasForeignKey(r => r.UserID);
+                .HasForeignKey(r => r.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<HelpRequest>()
                 .HasOne(h => h.User)
                 .WithMany()
-                .HasForeignKey(h => h.UserID);
+                .HasForeignKey(h => h.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<RoleRequest>()
                 .HasOne(r => r.User)
                 .WithMany()
-                .HasForeignKey(r => r.UserID);
+                .HasForeignKey(r => r.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<ImageRequest>()
                 .HasOne(r => r.User)
                 .WithMany()
-                .HasForeignKey(r => r.UserID);
+                .HasForeignKey(r => r.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<NameRequest>()
                 .HasOne(h => h.User)
                 .WithMany()
-                .HasForeignKey(h => h.UserID);
+                .HasForeignKey(h => h.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Message>()
                 .HasOne(r => r.User)
                 .WithMany()
-                .HasForeignKey(r => r.UserID);
+                .HasForeignKey(r => r.UserID)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

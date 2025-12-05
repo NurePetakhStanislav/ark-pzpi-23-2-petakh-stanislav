@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace CAaR.Models
 {
     [Table("NameRequest")]
-    public class NameRequest
+    public class NameRequest : IHasUser
     {
         [Key]
         public int NameID { get; set; }

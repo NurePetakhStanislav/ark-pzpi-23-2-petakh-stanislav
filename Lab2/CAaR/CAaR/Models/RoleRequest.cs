@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace CAaR.Models
 {
     [Table("RoleRequest")]
-    public class RoleRequest
+    public class RoleRequest : IHasUser, IHasFile
     {
         [Key]
         public int RoleID { get; set; }
@@ -14,7 +14,8 @@ namespace CAaR.Models
 
         [Required]
         [MaxLength(60)]
-        public string Document { get; set; }
+        [Column("Document")]
+        public string File { get; set; }
 
         public User User { get; set; }
     }

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace CAaR.Models
 {
     [Table("ImageRequest")]
-    public class ImageRequest
+    public class ImageRequest : IHasUser, IHasFile
     {
         [Key]
         public int ImageID { get; set; }
@@ -14,7 +14,8 @@ namespace CAaR.Models
 
         [Required]
         [MaxLength(50)]
-        public string Image { get; set; }
+        [Column("Image")]
+        public string File { get; set; }
 
         public User User { get; set; }
     }

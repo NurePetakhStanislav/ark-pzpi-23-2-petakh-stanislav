@@ -63,7 +63,7 @@ public class RoleRequestsController : ControllerBase
         using var stream = new FileStream(filePath, FileMode.Create);
         await requestUpload.Document.CopyToAsync(stream);
 
-        roleRequest.Document = fileName;
+        roleRequest.File = fileName;
         roleRequest.User = user;
 
         await _service.AddAsync(roleRequest);
@@ -77,9 +77,9 @@ public class RoleRequestsController : ControllerBase
         if (roleRequest == null)
             return NotFound("Даного запиту за ID не існує");
 
-        if (!string.IsNullOrEmpty(roleRequest.Document))
+        if (!string.IsNullOrEmpty(roleRequest.File))
         {
-            var filePath = Path.Combine("wwwroot", "RoleDocs", roleRequest.Document);
+            var filePath = Path.Combine("wwwroot", "RoleDocs", roleRequest.File);
             if (System.IO.File.Exists(filePath))
             {
                 System.IO.File.Delete(filePath);
